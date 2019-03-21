@@ -1,5 +1,5 @@
 #!/bin/sh
-choco install p7zip-full
+choco install 7zip.install
 
 for file in *.7z
 do

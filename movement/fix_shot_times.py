@@ -51,7 +51,7 @@ def sg_filter(x, m, k=0):
 def smooth(x, y, size=5, order=2, deriv=0):
 
     if deriv > order:
-        raise Exception, "deriv must be <= order"
+        raise Exception("deriv must be <= order")
 
     n = len(x)
     m = size

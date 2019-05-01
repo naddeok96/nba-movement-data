@@ -129,19 +129,6 @@ data = data[!(data$Event_Indicator == 1),]%>% #Delete Indicated
     select(-c("GP_Indicator", "Event_Indicator"))
 #-----------------------------------------------------------------------------------------#
 
-# Find Names
-#------------------------------------------------------------------------------------------------------------#
-data_ids = as.data.frame(unique(data$player_id)[seq(2,length(unique(data$player_id)))])
-data_ids = rename(data_ids,"Player_Id" = colnames(data_ids)[1])
-
-data_ids$Player_Name = rep(NA,nrow(data_ids))
-
-for (i in seq(nrow(data_ids))){
-    data_ids$Player_Name[i] = toString(events[events$PLAYER1_ID == data_ids$Player_Id[i],]$PLAYER1_NAME[1])
-    
-}
-#------------------------------------------------------------------------------------------------------------#
-
 # Find Team with Possession
 #------------------------------------------------------------------------------#
 plays = unique(data$Play_Number)
@@ -564,5 +551,3 @@ experiences[,!names(experiences) %in% c("Action", "Reward")] %<>% normalize()
 setwd("E:/Roboballer/nba-movement-data/data/experiences")
 write.csv(experiences, file = "0021500001_experiences.csv")
 #---------------------------------------------------------#
-
-rm(list = ls)

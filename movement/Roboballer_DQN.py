@@ -1,82 +1,91 @@
+
 # Imports
-#--------------------------------------------------#
-import keras
+#-----------------------------------------------------#
+import os
+import pandas as pd
+from keras.layers import Dense, Dropout, concatenate
 from keras.models import Model
-from keras.layers import Conv2D, MaxPooling2D
-from keras.layers import Flatten, Dense
-from keras.layers import Input
-from keras.utils import np_utils
-from keras.datasets import cifar10
-#--------------------------------------------------#
+#-----------------------------------------------------#
 
-# Hyperparameters
-#--------------------------------------------------#
-epochs = 100
-#--------------------------------------------------#
+# Load Experiences
+#------------------------------------------------------------#
+os.chdir("E:/Roboballer/nba-movement-data/data/experiences")
 
-# Load Data
-#--------------------------------------------------#
+data = pd.read_csv("0021500001_experiences.csv")
+exp = data.drop(data.columns[0],axis=1)
+#------------------------------------------------------------#
 
-#--------------------------------------------------#
-
-# Generate Experiences and Shuffle
-#--------------------------------------------------#
-
-#--------------------------------------------------#
-
-# Game Properties Network
-#--------------------------------------------------#
-def gameNet(game_props):
-    input_game = Input(shape = (32, 32, 3))
-
-    volume_1 = Conv2D(64, (1,1), padding='same', activation='relu')(input_img)
+# Build Player Network
+#---------------------------------------------------#
+def player(x):
+    layer1 = Dense(100, activation = 'relu')(x)
+    layer2 = Dropout(0.2)(layer1)
+    layer3 = Dense(50, activation = 'relu')(layer2)
+    layer4 = Dropout(0.4)(layer3)
+    output = Dense(6)(layer4)
     
-    volume_2 = Conv2D(96, (1,1), padding='same', activation='relu')(input_img)
-    volume_2 = Conv2D(128, (3,3), padding='same', activation='relu')(volume_2)
+    return output
+#---------------------------------------------------#
     
-    volume_3 = Conv2D(16, (1,1), padding='same', activation='relu')(input_img)
-    volume_3 = Conv2D(32, (5,5), padding='same', activation='relu')(volume_3)
+# Build Team Networks
+#----------------------------------------------------------------------#
+def teamOff(x):
+    input_layer = concatenate([player(x.loc[0,"O1_Dist":"O1_Attr"].tolist()), 
+                               player(x.loc[0,"O2_Dist":"O2_Attr"].tolist()),
+                               player(x.loc[0,"O3_Dist":"O3_Attr"].tolist()),
+                               player(x.loc[0,"O4_Dist":"O4_Attr"].tolist()),
+                               player(x.loc[0,"O5_Dist":"O5_Attr"].tolist())],
+                               axis = 1)
     
-    volume_4 = MaxPooling2D((3,3), strides=(1,1), padding='same')(input_img)
-    volume_4 = Conv2D(32, (1,1), padding='same', activation='relu')(volume_4)
+    layer1 = Dense(100, activation = 'relu')(input_layer)
+    layer2 = Dropout(0.2)(layer1)
+    layer3 = Dense(50, activation = 'relu')(layer2)
+    layer4 = Dropout(0.4)(layer3)
+    output = Dense(5)(layer4)
     
-    # Concatenate all volumes of the Inception module
-    inception_module = keras.layers.concatenate([volume_1, volume_2, volume_3,
-                                                 volume_4], axis = 3)
-    output = Flatten()(inception_module)
-#--------------------------------------------------#
+    return output
 
-# Offense Player Network
-#--------------------------------------------------#
-
-#--------------------------------------------------#
-
-# Defense Player Network
-#--------------------------------------------------#
-
-#--------------------------------------------------#
-
-# Team Network
-#--------------------------------------------------#
-
-#--------------------------------------------------#
-
-# Final Network
-#--------------------------------------------------#
-
-#--------------------------------------------------#
-
-out    = Dense(10, activation='softmax')(output)
-
-
-model = Model(inputs = input_img, outputs = out)
-print(model.summary())
-
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-hist = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=512)
-
-
-scores = model.evaluate(X_test, y_test, verbose=0)
-print("Accuracy: %.2f%%" % (scores[1]*100))
-
-
+def teamDef(x):
+    input_layer = concatenate([player(x.loc[0,"D1_Dist":"D1_Vel_Y"].tolist()), 
+                               player(x.loc[0,"D2_Dist":"D2_Vel_Y"].tolist()),
+                               player(x.loc[0,"D3_Dist":"D3_Vel_Y"].tolist()),
+                               player(x.loc[0,"D4_Dist":"D4_Vel_Y"].tolist()),
+                               player(x.loc[0,"D5_Dist":"D5_Vel_Y"].tolist())])
+    
+    layer1 = Dense(100, activation = 'relu')(input_layer)
+    layer2 = Dropout(0.2)(layer1)
+    layer3 = Dense(50, activation = 'relu')(layer2)
+    layer4 = Dropout(0.4)(layer3)
+    output = Dense(5)(layer4)
+    
+    return output
+#----------------------------------------------------------------------#
+    
+# Build DQN Model
+#----------------------------------------------------------------------#
+def DQN(x):
+    game_props    = x.loc[0,"Game_Clock":"Ball_Loc_Y"].tolist()
+    offense_props = x.loc[0,"O1_Dist":"O5_Attr"].to_frame().T
+    defense_props = x.loc[0,"D1_Dist":"D5_Vel_Y"].to_frame().T
+    action        = x.loc[0,"Action"].tolist()
+    input_layer = concatenate(game_props,
+                              teamOff(offense_props),
+                              teamDef(defense_props),
+                              action)
+    
+    layer1 = Dense(100, activation = 'relu')(input_layer)
+    layer2 = Dropout(0.2)(layer1)
+    layer3 = Dense(100, activation = 'relu')(layer2)
+    layer4 = Dropout(0.2)(layer3)
+    layer5 = Dense(50,activation = 'relu')(layer4)
+    layer6 = Dropout(0.4)(layer5)
+    output = Dense(7, activation = 'softmax' )(layer6)
+    
+    model = Model(inputs = input_layer, outputs = output)
+    print(model.summary())
+    return output
+#----------------------------------------------------------------------#
+    
+# 
+    
+DQN(exp.loc[0,].to_frame().T)

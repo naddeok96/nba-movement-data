@@ -1,16 +1,16 @@
-# nba-movement-data
+# nba-movement-data~Neil Seward
 Ever since the nba stopped public access of their movement data, I though it would be good to have a copy of @neilmj data repo incase he deletes his data repo.
 
 Credit: [@neilmj](https://github.com/neilmj/BasketballData)
 
-## Data Setup
+## Data Setup~Neil Seward
 1.To unzip the 7z file run this command
 ```
 cd data
 sudo ./setup.sh
 ```
 
-## Additional Data Conversions
+## Additional Data Conversions~Neil Seward
 1. Additional scripts are provided. To complete these steps, add your project directory to the constant.py file in the movement package.
 ```py 
 import os
@@ -43,6 +43,9 @@ python movement/convert_movement.py
 python fix_shot_times.py
 ```
 
-In the fixing logic, the shot time is defined as the highest acceleration point before the ball reaches it's peak, within a defined window.
-The logic can be seen below.
-![plot](movement/plot.png)
+# Using Data to Evaluate Player Actions Values with a Deep Q-Network ~ Kyle Naddeo
+Information of the methods and background can be found in "Predicting Basketball Players Action Values with a DQN" pdf
+
+
+1. Run the generate_features.py file to format the data in a way to be feed to the DQN
+2. Run the Roboballer_DQN.py file to train an agent to learn the strategy of basketball
